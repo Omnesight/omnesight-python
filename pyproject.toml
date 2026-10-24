@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "omnesight"
+version = "1.0.0"
+description = "Official Python SDK for Omnesight Sovereign Operational Intelligence & Autonomous Execution Infrastructure"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.9"
+authors = [
+    { name = "Omnesight Infrastructure Team", email = "solutions@omnesight.com" }
+]
+keywords = [
+    "omnesight",
+    "operational-intelligence",
+    "autonomous-execution",
+    "enterprise-ai",
+    "erp-reconciliation",
+    "telemetry",
+    "sovereign-ai"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+dependencies = [
+    "httpx>=0.25.0",
+    "pydantic>=2.5.0",
+    "typing-extensions>=4.8.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.1.0"
+]
+
+[project.urls]
+Homepage = "https://omnesight.com"
+Documentation = "https://omnesight.com/docs"
+Repository = "https://github.com/Omnesight/omnesight-python"
+"Security Policy" = "https://github.com/Omnesight/.github/blob/main/SECURITY.md"
