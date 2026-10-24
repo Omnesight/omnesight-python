@@ -40,8 +40,11 @@ pip install omnesight
 ```python
 from omnesight import Omnesight
 
-# Initialize the client (reads OMNESIGHT_API_KEY from environment if omitted)
-client = Omnesight(api_key="your_api_key_here")
+# Initialize the client (reads OMNESIGHT_API_KEY & OMNESIGHT_BASE_URL from environment if omitted)
+client = Omnesight(
+    api_key="your_api_key_here",
+    base_url="https://omnesight.internal.company.com" # Your private VPC or dedicated sovereign gateway
+)
 
 # 1. Ingest asset telemetry
 response = client.telemetry.ingest(

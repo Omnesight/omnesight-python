@@ -19,8 +19,6 @@ from .resources.telemetry import TelemetryResource, AsyncTelemetryResource
 from .resources.reconciliation import ReconciliationResource, AsyncReconciliationResource
 from .resources.actions import ActionsResource, AsyncActionsResource
 
-DEFAULT_BASE_URL = "https://api.omnesight.com"
-
 class Omnesight:
     """
     Synchronous enterprise client for Omnesight Operational Intelligence Infrastructure.
@@ -36,7 +34,13 @@ class Omnesight:
         if not self.api_key:
             raise AuthenticationError("API key must be provided or set via OMNESIGHT_API_KEY environment variable.")
         
-        self.base_url = (base_url or os.environ.get("OMNESIGHT_BASE_URL") or DEFAULT_BASE_URL).rstrip("/")
+        resolved_base_url = base_url or os.environ.get("OMNESIGHT_BASE_URL")
+        if not resolved_base_url:
+            raise OmnesightError(
+                "Endpoint base_url must be specified or set via OMNESIGHT_BASE_URL "
+                "(e.g. your enterprise VPC or dedicated sovereign gateway)."
+            )
+        self.base_url = resolved_base_url.rstrip("/")
         self.timeout = timeout
         self.max_retries = max_retries
         
@@ -111,7 +115,13 @@ class AsyncOmnesight:
         if not self.api_key:
             raise AuthenticationError("API key must be provided or set via OMNESIGHT_API_KEY environment variable.")
         
-        self.base_url = (base_url or os.environ.get("OMNESIGHT_BASE_URL") or DEFAULT_BASE_URL).rstrip("/")
+        resolved_base_url = base_url or os.environ.get("OMNESIGHT_BASE_URL")
+        if not resolved_base_url:
+            raise OmnesightError(
+                "Endpoint base_url must be specified or set via OMNESIGHT_BASE_URL "
+                "(e.g. your enterprise VPC or dedicated sovereign gateway)."
+            )
+        self.base_url = resolved_base_url.rstrip("/")
         self.timeout = timeout
         self.max_retries = max_retries
 
