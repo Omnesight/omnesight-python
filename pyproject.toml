@@ -52,3 +52,8 @@ Homepage = "https://omnesight.com"
 Documentation = "https://omnesight.com/docs"
 Repository = "https://github.com/Omnesight/omnesight-python"
 "Security Policy" = "https://github.com/Omnesight/.github/blob/main/SECURITY.md"
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+
