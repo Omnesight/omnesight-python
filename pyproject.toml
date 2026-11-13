@@ -40,6 +40,9 @@ dependencies = [
     "typing-extensions>=4.8.0"
 ]
 
+[project.scripts]
+omnesight = "omnesight.cli:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=7.4.0",
@@ -52,6 +55,9 @@ Homepage = "https://omnesight.com"
 Documentation = "https://omnesight.com/docs"
 Repository = "https://github.com/Omnesight/omnesight-python"
 "Security Policy" = "https://github.com/Omnesight/.github/blob/main/SECURITY.md"
+
+[tool.hatch.build.targets.sdist]
+exclude = ["Formula", ".github", "install.sh"]
 
 [tool.pyright]
 venvPath = "."

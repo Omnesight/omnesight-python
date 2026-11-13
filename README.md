@@ -29,13 +29,45 @@ The **Omnesight Python SDK** provides typed access to Omnesight's sovereign Non-
 
 ## Installation
 
+### Python (PyPI)
 ```bash
 pip install omnesight
 ```
 
+### Homebrew (macOS / Linux)
+```bash
+brew tap omnesight/tap https://github.com/Omnesight/omnesight-python
+brew install omnesight
+```
+
+### Universal Shell Installer
+```bash
+curl -fsSL https://raw.githubusercontent.com/Omnesight/omnesight-python/main/install.sh | sh
+```
+
 ---
 
-## Quickstart
+## Interactive Shell & CLI (`omnesight shell`)
+
+```bash
+# Save credentials once (~/.omnesight/config.json, mode 0600)
+omnesight config --api-key omne_live_your_secret_key --base-url https://mlops-api.omnesight.com
+
+# Check live engine readiness
+omnesight status
+
+# One-shot inference & scientific discovery
+omnesight sandalfon discover --preset thermal_runaway
+omnesight sandalfon chat "Analyse les précurseurs thermiques sur les câbles"
+omnesight hackmalim infer --shock-amplitude 1.45 --leak-node 2
+
+# Launch interactive REPL shell (omnesight> )
+omnesight shell
+```
+
+---
+
+## Quickstart (Python SDK)
 
 ### 1. Sovereign Scientific & Control Engines (`Hackmalim` & `Sandalfon`)
 
