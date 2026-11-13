@@ -1,58 +1,63 @@
 """
 Omnesight Python SDK - Quickstart Example
-Demonstrates telemetry ingestion, discrepancy scan, and supervised action verification.
+Demonstrates sovereign MLOps calls against Hackmalim v1.0, Sandalfon v1.0,
+and operational telemetry pipelines.
 """
 
+import os
 from omnesight import Omnesight
 
+
 def main():
-    # 1. Initialize client (can also read from OMNESIGHT_API_KEY environment variable)
     client = Omnesight(
-        api_key="omn_live_mock_token_771829",
-        base_url="https://internal.company.com" # Or your sovereign VPC: "https://omnesight.internal.company.com"
+        api_key=os.environ.get("OMNESIGHT_API_KEY", "omne_live_demo_token_replace_me"),
+        base_url=os.environ.get("OMNESIGHT_BASE_URL", "http://127.0.0.1:8001"),
     )
 
-    print("⚡ Omnesight Enterprise Client Initialized")
+    print("Omnesight Sovereign MLOps Client Initialized")
 
-    # 2. Ingest operational telemetry from heavy assets / transport fleet
-    print("\n[Step 1] Ingesting Telemetry Stream...")
+    # 1. Sandalfon v1.0: Discover sparse differential equations & FFT wave precursors
+    print("\n[Step 1] Sandalfon v1.0 Scientific Discovery...")
     try:
-        response = client.telemetry.ingest(
-            stream_id="corridor-abuja-freight-08",
-            records=[
-                {
-                    "device_id": "GPS-TRK-9901",
-                    "metric": "cargo_seal_integrity",
-                    "value": 1.0, # 1.0 = intact, 0.0 = compromised
-                    "metadata": {"route": "Lagos-Kano", "driver_id": "DRV-442"}
-                },
-                {
-                    "device_id": "FLOW-MTR-301",
-                    "metric": "pipeline_pressure_bar",
-                    "value": 68.4,
-                    "unit": "bar"
-                }
-            ]
+        discovery = client.sandalfon.discover(
+            preset="thermal_runaway",
+            noise_level=0.02,
+            sparsity_threshold=0.10,
+            precursor_amp=0.18,
+            hypothesis_text="Check cable thermal runaway harmonics before outage",
         )
-        print(f"Batch {response.batch_id} ingested in {response.duration_ms}ms")
-    except Exception as e:
-        print(f"Ingestion notice (mock environment): {e}")
+        print(f"  Discovered ODE X : {discovery.sindy.get('discovered_eq_x')}")
+        print(f"  Precursor SNR dB : {discovery.spectrum.get('precursor_snr_db')}")
+        print(f"  Popper Z-Score   : {discovery.hypothesis_test.get('z_score')}")
 
-    # 3. Trigger ERP vs Operational Ledger Discrepancy Scan
-    print("\n[Step 2] Scanning ERP Purchase Orders vs Delivery Receipts...")
+        dialogue = client.sandalfon.chat(
+            message="Analyse le couplage thermique avec un signal faible sur les câbles",
+            preset="thermal_runaway",
+        )
+        print(f"  Sandalfon Reply  : {dialogue.spoken_reply}")
+    except Exception as e:
+        print(f"Sandalfon notice (requires live MLOps API): {e}")
+
+    # 2. Hackmalim v1.0: Closed-loop Liquid ODE + Kirchhoff PI-GNN + Causal SAT Verifier
+    print("\n[Step 2] Hackmalim v1.0 Sovereign 3-Layer Control...")
     try:
-        discrepancies = client.reconciliation.scan_discrepancies(
-            erp_system="SAP",
-            entity_type="PURCHASE_ORDERS",
-            lookback_days=14
+        res = client.hackmalim.infer(
+            shock_amplitude=1.45,
+            leak_node=2,
+            leak_magnitude=22.5,
+            p_max_kw=55.0,
+            t_max_c=72.0,
         )
-        print(f"Found {len(discrepancies)} operational discrepancies.")
-        for disc in discrepancies:
-            print(f"- Discrepancy #{disc.discrepancy_id}: Variance ${disc.variance_amount_usd:,.2f} ({disc.status})")
+        pignn = res.stage_2_pignn or res.pignn or {}
+        guardrail = res.enterprise_guardrail or res.guardrails or {}
+        print(f"  Target Entity    : {res.target_entity_id}")
+        print(f"  Pinpointed Node  : {pignn.get('pinpointed_node')}")
+        print(f"  Guardrail Valid  : {guardrail.get('is_approved')}")
     except Exception as e:
-        print(f"Reconciliation notice (mock environment): {e}")
+        print(f"Hackmalim notice (requires live MLOps API): {e}")
 
-    print("\n✅ Quickstart completed successfully.")
+    print("\nQuickstart completed.")
+
 
 if __name__ == "__main__":
     main()

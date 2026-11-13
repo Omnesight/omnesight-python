@@ -3,24 +3,38 @@ Omnesight Python SDK
 Sovereign Operational Intelligence & Autonomous Execution Infrastructure
 """
 
-from .client import Omnesight, AsyncOmnesight
+from .client import AsyncOmnesight, Omnesight
 from .exceptions import (
-    OmnesightError,
     AuthenticationError,
+    InternalServerError,
+    NotFoundError,
+    OmnesightError,
     PolicyViolationError,
     RateLimitError,
-    NotFoundError,
-    InternalServerError
+)
+from .models import (
+    HackmalimInferRequest,
+    HackmalimInferResponse,
+    SandalfonChatRequest,
+    SandalfonChatResponse,
+    SandalfonDiscoverRequest,
+    SandalfonDiscoverResponse,
 )
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __all__ = [
-    "Omnesight",
     "AsyncOmnesight",
-    "OmnesightError",
     "AuthenticationError",
+    "HackmalimInferRequest",
+    "HackmalimInferResponse",
+    "InternalServerError",
+    "NotFoundError",
+    "Omnesight",
+    "OmnesightError",
     "PolicyViolationError",
     "RateLimitError",
-    "NotFoundError",
-    "InternalServerError",
+    "SandalfonChatRequest",
+    "SandalfonChatResponse",
+    "SandalfonDiscoverRequest",
+    "SandalfonDiscoverResponse",
 ]

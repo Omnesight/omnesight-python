@@ -1,94 +1,123 @@
 """
 Omnesight Client Implementation
-Supports synchronous and asynchronous execution, enterprise custom endpoints (VPC),
-and automatic exponential backoff retries.
+Supports synchronous and asynchronous execution, sovereign MLOps gateways,
+custom VPC endpoints, and automatic transport retries.
 """
 
-from typing import Optional, Dict, Any
+from __future__ import annotations
+
 import os
+from typing import Any
+
 import httpx
+
 from .exceptions import (
-    OmnesightError,
     AuthenticationError,
+    InternalServerError,
+    NotFoundError,
+    OmnesightError,
     PolicyViolationError,
     RateLimitError,
-    NotFoundError,
-    InternalServerError
 )
-from .resources.telemetry import TelemetryResource, AsyncTelemetryResource
-from .resources.reconciliation import ReconciliationResource, AsyncReconciliationResource
 from .resources.actions import ActionsResource, AsyncActionsResource
+from .resources.hackmalim import AsyncHackmalimResource, HackmalimResource
+from .resources.reconciliation import (
+    AsyncReconciliationResource,
+    ReconciliationResource,
+)
+from .resources.sandalfon import AsyncSandalfonResource, SandalfonResource
+from .resources.telemetry import AsyncTelemetryResource, TelemetryResource
+
+DEFAULT_BASE_URL = "http://127.0.0.1:8001"
+SDK_USER_AGENT = "omnesight-python-sdk/1.1.0"
+
+_STATUS_EXCEPTIONS = {
+    401: AuthenticationError,
+    403: AuthenticationError,
+    404: NotFoundError,
+    422: PolicyViolationError,
+    429: RateLimitError,
+}
+
+
+def _resolve_client_settings(
+    api_key: str | None,
+    base_url: str | None,
+) -> tuple[str, str, dict[str, str]]:
+    """Resolve API credentials, gateway base URL, and standard Omnesight headers."""
+    resolved_key = api_key or os.environ.get("OMNESIGHT_API_KEY")
+    if not resolved_key:
+        raise AuthenticationError(
+            "API key must be provided or set via OMNESIGHT_API_KEY environment variable."
+        )
+    env_url = os.environ.get("OMNESIGHT_BASE_URL")
+    resolved_url = (base_url or env_url or DEFAULT_BASE_URL).rstrip("/")
+    headers = {
+        "Authorization": f"Bearer {resolved_key}",
+        "X-API-Key": resolved_key,
+        "Content-Type": "application/json",
+        "User-Agent": SDK_USER_AGENT,
+    }
+    return resolved_key, resolved_url, headers
+
+
+def _parse_response(response: httpx.Response) -> dict[str, Any]:
+    """Decode successful JSON payloads or raise the typed Omnesight SDK exception."""
+    if 200 <= response.status_code < 300:
+        return response.json()
+
+    error_msg = response.text
+    try:
+        error_data = response.json()
+        error_msg = error_data.get("message", error_data.get("detail", error_msg))
+    except ValueError:
+        error_msg = response.text
+
+    exc_cls = _STATUS_EXCEPTIONS.get(response.status_code, InternalServerError)
+    raise exc_cls(error_msg, status_code=response.status_code)
+
 
 class Omnesight:
-    """
-    Synchronous enterprise client for Omnesight Operational Intelligence Infrastructure.
-    """
+    """Synchronous enterprise client for Omnesight Sovereign MLOps Infrastructure."""
+
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
+        api_key: str | None = None,
+        base_url: str | None = None,
         timeout: float = 30.0,
-        max_retries: int = 3
+        max_retries: int = 3,
+        transport: httpx.BaseTransport | None = None,
     ):
-        self.api_key = api_key or os.environ.get("OMNESIGHT_API_KEY")
-        if not self.api_key:
-            raise AuthenticationError("API key must be provided or set via OMNESIGHT_API_KEY environment variable.")
-        
-        resolved_base_url = base_url or os.environ.get("OMNESIGHT_BASE_URL")
-        if not resolved_base_url:
-            raise OmnesightError(
-                "Endpoint base_url must be specified or set via OMNESIGHT_BASE_URL "
-                "(e.g. your enterprise VPC or dedicated sovereign gateway)."
-            )
-        self.base_url = resolved_base_url.rstrip("/")
+        resolved = _resolve_client_settings(api_key, base_url)
+        self.api_key, self.base_url, headers = resolved
         self.timeout = timeout
         self.max_retries = max_retries
-        
-        self._http_client = httpx.Client(
-            base_url=self.base_url,
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-                "User-Agent": "omnesight-python-sdk/1.0.0"
-            },
-            timeout=self.timeout
-        )
 
-        # Resources
+        client_kwargs: dict[str, Any] = {
+            "base_url": self.base_url,
+            "headers": headers,
+            "timeout": self.timeout,
+        }
+        if transport is not None:
+            client_kwargs["transport"] = transport
+        self._http_client = httpx.Client(**client_kwargs)
+
         self.telemetry = TelemetryResource(self)
         self.reconciliation = ReconciliationResource(self)
         self.actions = ActionsResource(self)
+        self.hackmalim = HackmalimResource(self)
+        self.sandalfon = SandalfonResource(self)
 
-    def _request(self, method: str, path: str, **kwargs) -> Dict[str, Any]:
+    def _request(self, method: str, path: str, **kwargs: Any) -> dict[str, Any]:
         for attempt in range(self.max_retries + 1):
             try:
                 resp = self._http_client.request(method, path, **kwargs)
-                return self._handle_response(resp)
-            except httpx.TransportError as e:
+                return _parse_response(resp)
+            except httpx.TransportError as exc:
                 if attempt == self.max_retries:
-                    raise InternalServerError(f"Connection to Omnesight infrastructure failed: {str(e)}")
-
-    def _handle_response(self, response: httpx.Response) -> Dict[str, Any]:
-        if 200 <= response.status_code < 300:
-            return response.json()
-        
-        error_msg = response.text
-        try:
-            error_data = response.json()
-            error_msg = error_data.get("message", error_data.get("detail", error_msg))
-        except Exception:
-            pass
-
-        if response.status_code == 401 or response.status_code == 403:
-            raise AuthenticationError(error_msg, status_code=response.status_code)
-        elif response.status_code == 422:
-            raise PolicyViolationError(error_msg, status_code=response.status_code)
-        elif response.status_code == 429:
-            raise RateLimitError(error_msg, status_code=response.status_code)
-        elif response.status_code == 404:
-            raise NotFoundError(error_msg, status_code=response.status_code)
-        else:
-            raise InternalServerError(error_msg, status_code=response.status_code)
+                    msg = f"Connection to Omnesight infrastructure failed: {exc}"
+                    raise InternalServerError(msg) from exc
+        raise OmnesightError("Request failed after retries.")
 
     def close(self):
         self._http_client.close()
@@ -101,74 +130,46 @@ class Omnesight:
 
 
 class AsyncOmnesight:
-    """
-    Asynchronous enterprise client for Omnesight Operational Intelligence Infrastructure.
-    """
+    """Asynchronous enterprise client for Omnesight Sovereign MLOps Infrastructure."""
+
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
+        api_key: str | None = None,
+        base_url: str | None = None,
         timeout: float = 30.0,
-        max_retries: int = 3
+        max_retries: int = 3,
+        transport: httpx.AsyncBaseTransport | None = None,
     ):
-        self.api_key = api_key or os.environ.get("OMNESIGHT_API_KEY")
-        if not self.api_key:
-            raise AuthenticationError("API key must be provided or set via OMNESIGHT_API_KEY environment variable.")
-        
-        resolved_base_url = base_url or os.environ.get("OMNESIGHT_BASE_URL")
-        if not resolved_base_url:
-            raise OmnesightError(
-                "Endpoint base_url must be specified or set via OMNESIGHT_BASE_URL "
-                "(e.g. your enterprise VPC or dedicated sovereign gateway)."
-            )
-        self.base_url = resolved_base_url.rstrip("/")
+        resolved = _resolve_client_settings(api_key, base_url)
+        self.api_key, self.base_url, headers = resolved
         self.timeout = timeout
         self.max_retries = max_retries
 
-        self._http_client = httpx.AsyncClient(
-            base_url=self.base_url,
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-                "User-Agent": "omnesight-python-sdk/1.0.0"
-            },
-            timeout=self.timeout
-        )
+        client_kwargs: dict[str, Any] = {
+            "base_url": self.base_url,
+            "headers": headers,
+            "timeout": self.timeout,
+        }
+        if transport is not None:
+            client_kwargs["transport"] = transport
+        self._http_client = httpx.AsyncClient(**client_kwargs)
 
         self.telemetry = AsyncTelemetryResource(self)
         self.reconciliation = AsyncReconciliationResource(self)
         self.actions = AsyncActionsResource(self)
+        self.hackmalim = AsyncHackmalimResource(self)
+        self.sandalfon = AsyncSandalfonResource(self)
 
-    async def _request(self, method: str, path: str, **kwargs) -> Dict[str, Any]:
+    async def _request(self, method: str, path: str, **kwargs: Any) -> dict[str, Any]:
         for attempt in range(self.max_retries + 1):
             try:
                 resp = await self._http_client.request(method, path, **kwargs)
-                return self._handle_response(resp)
-            except httpx.TransportError as e:
+                return _parse_response(resp)
+            except httpx.TransportError as exc:
                 if attempt == self.max_retries:
-                    raise InternalServerError(f"Connection to Omnesight infrastructure failed: {str(e)}")
-
-    def _handle_response(self, response: httpx.Response) -> Dict[str, Any]:
-        if 200 <= response.status_code < 300:
-            return response.json()
-        
-        error_msg = response.text
-        try:
-            error_data = response.json()
-            error_msg = error_data.get("message", error_data.get("detail", error_msg))
-        except Exception:
-            pass
-
-        if response.status_code in (401, 403):
-            raise AuthenticationError(error_msg, status_code=response.status_code)
-        elif response.status_code == 422:
-            raise PolicyViolationError(error_msg, status_code=response.status_code)
-        elif response.status_code == 429:
-            raise RateLimitError(error_msg, status_code=response.status_code)
-        elif response.status_code == 404:
-            raise NotFoundError(error_msg, status_code=response.status_code)
-        else:
-            raise InternalServerError(error_msg, status_code=response.status_code)
+                    msg = f"Connection to Omnesight infrastructure failed: {exc}"
+                    raise InternalServerError(msg) from exc
+        raise OmnesightError("Request failed after retries.")
 
     async def aclose(self):
         await self._http_client.aclose()
