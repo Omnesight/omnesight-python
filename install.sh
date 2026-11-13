@@ -4,7 +4,7 @@ set -eu
 OMNESIGHT_HOME="${OMNESIGHT_HOME:-$HOME/.omnesight}"
 VENV_DIR="$OMNESIGHT_HOME/venv"
 BIN_DIR="${OMNESIGHT_BIN_DIR:-$HOME/.local/bin}"
-INSTALL_SOURCE="${OMNESIGHT_INSTALL_SOURCE:-omnesight}"
+INSTALL_SOURCE="${OMNESIGHT_INSTALL_SOURCE:-omnesight>=1.2.0}"
 GITHUB_SOURCE="git+https://github.com/Omnesight/omnesight-python.git"
 
 echo "Installing Omnesight CLI & Python SDK into $VENV_DIR..."
@@ -21,16 +21,22 @@ fi
 mkdir -p "$OMNESIGHT_HOME" "$BIN_DIR"
 "$PYTHON_BIN" -m venv "$VENV_DIR"
 
-if [ "$INSTALL_SOURCE" = "omnesight" ]; then
-  if ! "$VENV_DIR/bin/pip" install --upgrade pip >/dev/null 2>&1; then
-    true
-  fi
-  if ! "$VENV_DIR/bin/pip" install --upgrade "$INSTALL_SOURCE"; then
-    echo "PyPI package not reachable yet, falling back to GitHub source..."
+if ! "$VENV_DIR/bin/pip" install --upgrade pip >/dev/null 2>&1; then
+  true
+fi
+
+if [ "$INSTALL_SOURCE" = "omnesight>=1.2.0" ] || [ "$INSTALL_SOURCE" = "omnesight" ]; then
+  if ! "$VENV_DIR/bin/pip" install --upgrade "omnesight>=1.2.0" || [ ! -x "$VENV_DIR/bin/omnesight" ]; then
+    echo "PyPI package >=1.2.0 with CLI not available yet, falling back to GitHub source..."
     "$VENV_DIR/bin/pip" install --upgrade "$GITHUB_SOURCE"
   fi
 else
   "$VENV_DIR/bin/pip" install --upgrade "$INSTALL_SOURCE"
+fi
+
+if [ ! -x "$VENV_DIR/bin/omnesight" ]; then
+  echo "Error: omnesight CLI entrypoint missing at $VENV_DIR/bin/omnesight." >&2
+  exit 1
 fi
 
 ln -sf "$VENV_DIR/bin/omnesight" "$BIN_DIR/omnesight"

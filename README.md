@@ -42,7 +42,7 @@ brew install omnesight
 
 ### Universal Shell Installer
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Omnesight/omnesight-python/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/Omnesight/omnesight-python/master/install.sh | sh
 ```
 
 ---
