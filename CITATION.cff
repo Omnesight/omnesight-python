@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use the Omnesight Python SDK, CLI, Hackmalim, or Sandalfon interfaces in your research or operational systems, please cite it using the metadata from this file."
+title: "Omnesight Python SDK & Interactive Shell"
+type: software
+authors:
+  - family-names: "Mavoungou"
+    given-names: "Malahim"
+    affiliation: "Omnesight"
+    email: "solutions@omnesight.com"
+  - name: "Omnesight Research & Infrastructure Team"
+version: "1.2.0"
+date-released: "2026-11-14"
+license: Apache-2.0
+repository-code: "https://github.com/Omnesight/omnesight-python"
+url: "https://omnesight.com"
+abstract: "Official Python SDK, CLI, and interactive REPL shell for Omnesight's sovereign Non-LLM scientific and operational intelligence engines: Hackmalim v1.0 (Continuous-Time Liquid Neural ODEs, Kirchhoff Physics-Informed GNN, Pearl Do-Calculus & SAT formal verifier) and Sandalfon v1.0 (sparse differential equation discovery via SINDy/STLSQ, FFT spectral precursor detection, and Popperian permutation falsification)."
+keywords:
+  - non-llm-ai
+  - scientific-machine-learning
+  - liquid-neural-networks
+  - physics-informed-neural-networks
+  - sindy
+  - causal-inference
+  - operational-intelligence
+  - supervised-action-protocol
+
