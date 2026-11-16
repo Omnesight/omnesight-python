@@ -1,0 +1,79 @@
+name: 🐛 Bug Report
+description: Report an issue or unexpected behavior in the Omnesight Python SDK
+title: "[BUG]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report an issue! Please fill out the form below to help us diagnose and resolve the bug as quickly as possible.
+  - type: dropdown
+    id: component
+    attributes:
+      label: SDK Component
+      description: Which part of the SDK is affected?
+      options:
+        - "Omnesight Client / API Connection"
+        - "Scientific Engines (Hackmalim / Sandolfon)"
+        - "Telemetry Ingestion (SCADA, IoT, TelemetryClient)"
+        - "ERP & Financial Reconciliation (SAP, Dynamics, T24)"
+        - "Supervised Action Protocol (SAP) / Firewall"
+        - "CLI Tool (omnesight shell / CLI)"
+        - "Other / Installation"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: SDK Version
+      description: Run `omnesight --version` or `python -c "import omnesight; print(omnesight.__version__)"`
+      placeholder: "e.g. 1.2.0"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS version and Python version
+      placeholder: "e.g. macOS Sonoma 14.5 / Python 3.11.8 / Linux Ubuntu 22.04"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the Bug
+      description: A clear and concise description of what the bug is.
+      placeholder: "When calling client.telemetry.ingest_stream(), the event buffer..."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal Reproduction Steps
+      description: Provide a minimal, reproducible code snippet.
+      placeholder: |
+        ```python
+        from omnesight import Omnesight
+
+        client = Omnesight(api_key="test")
+        # Trigger bug here
+        ```
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Traceback & Error Logs
+      description: Paste the full traceback or relevant CLI logs.
+      render: shell
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - "Low: Minor cosmetic or non-blocking inconvenience"
+        - "Medium: Feature impaired but workaround available"
+        - "High: Critical workflow broken, blocking execution"
+        - "Blocker: Data integrity risk or system crash"
+    validations:
+      required: true

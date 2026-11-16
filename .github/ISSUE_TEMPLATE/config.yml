@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Security Vulnerability Report
+    url: https://github.com/Omnesight/omnesight-python/security/policy
+    about: Please report security vulnerabilities privately. Do not open public issues.
+  - name: 📖 Official Omnesight Documentation
+    url: https://omnesight.com/docs
+    about: Explore API references, architecture guides, and tutorials.
