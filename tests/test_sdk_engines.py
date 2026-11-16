@@ -104,7 +104,7 @@ def test_default_base_url_and_api_key_headers():
         api_key="omne_live_abc123",
         transport=httpx.MockTransport(_mock_handler(captured)),
     )
-    assert client.base_url == "http://127.0.0.1:8001"
+    assert client.base_url == "https://mlops-api.omnesight.com"
 
     res = client.hackmalim.infer(shock_amplitude=1.5, leak_node=2)
     assert isinstance(res, HackmalimInferResponse)

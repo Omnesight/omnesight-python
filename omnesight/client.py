@@ -33,8 +33,8 @@ from .sandbox import (
     create_sandbox_transport,
 )
 
-DEFAULT_BASE_URL = "http://127.0.0.1:8001"
-SDK_USER_AGENT = "omnesight-python-sdk/1.1.0"
+DEFAULT_BASE_URL = "https://mlops-api.omnesight.com"
+SDK_USER_AGENT = "omnesight-python-sdk/1.2.0"
 
 _STATUS_EXCEPTIONS = {
     401: AuthenticationError,
