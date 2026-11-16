@@ -69,6 +69,31 @@ omnesight shell
 
 ## Quickstart (Python SDK)
 
+### 0. Zero-Config Sandbox (Instant Offline Evaluation)
+
+Evaluate Omnesight completely offline without requiring an API key, server deployment, or external network access:
+
+```python
+from omnesight import Omnesight
+
+# Enable deterministic offline sandbox simulation
+client = Omnesight(sandbox=True)
+
+# 1. Sandalfon v1.0: Sparse ODE discovery & spectral precursor detection
+discovery = client.sandalfon.discover(preset="thermal_runaway")
+print("Discovered ODE:", discovery.sindy["discovered_eq_x"])
+print("Popperian Z-Score:", discovery.hypothesis_test["z_score"])
+
+# 2. Hackmalim v1.0: Continuous-time liquid control & causal guardrails
+control = client.hackmalim.infer(shock_amplitude=1.45, leak_node=2)
+print("Pinpointed Anomaly Node:", control.stage_2_pignn["pinpointed_node"])
+print("Guardrail Approved:", control.enterprise_guardrail["is_approved"])
+
+# 3. Closed-Loop ERP & Cross-Ledger Reconciliation Scan
+reports = client.reconciliation.scan_discrepancies(erp_system="AMPLITUDE")
+print(f"Detected {len(reports)} discrepancies in offline sandbox.")
+```
+
 ### 1. Sovereign Scientific & Control Engines (`Hackmalim` & `Sandalfon`)
 
 ```python

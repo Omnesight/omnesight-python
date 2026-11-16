@@ -9,12 +9,17 @@ from omnesight import Omnesight
 
 
 def main():
+    api_key = os.environ.get("OMNESIGHT_API_KEY")
+    sandbox_mode = not api_key or os.environ.get("OMNESIGHT_SANDBOX") in ("1", "true", "True")
+
     client = Omnesight(
-        api_key=os.environ.get("OMNESIGHT_API_KEY", "omne_live_demo_token_replace_me"),
-        base_url=os.environ.get("OMNESIGHT_BASE_URL", "http://127.0.0.1:8001"),
+        api_key=api_key,
+        base_url=os.environ.get("OMNESIGHT_BASE_URL"),
+        sandbox=sandbox_mode,
     )
 
-    print("Omnesight Sovereign MLOps Client Initialized")
+    mode_label = "Sandbox (Deterministic Offline Simulation)" if client.is_sandbox else "Production Gateway"
+    print(f"Omnesight Sovereign MLOps Client Initialized [{mode_label}]")
 
     # 1. Sandalfon v1.0: Discover sparse differential equations & FFT wave precursors
     print("\n[Step 1] Sandalfon v1.0 Scientific Discovery...")

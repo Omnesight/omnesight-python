@@ -27,6 +27,11 @@ from .resources.reconciliation import (
 )
 from .resources.sandalfon import AsyncSandalfonResource, SandalfonResource
 from .resources.telemetry import AsyncTelemetryResource, TelemetryResource
+from .sandbox import (
+    DEFAULT_SANDBOX_TOKEN,
+    SANDBOX_BASE_URL,
+    create_sandbox_transport,
+)
 
 DEFAULT_BASE_URL = "http://127.0.0.1:8001"
 SDK_USER_AGENT = "omnesight-python-sdk/1.1.0"
@@ -43,22 +48,39 @@ _STATUS_EXCEPTIONS = {
 def _resolve_client_settings(
     api_key: str | None,
     base_url: str | None,
-) -> tuple[str, str, dict[str, str]]:
-    """Resolve API credentials, gateway base URL, and standard Omnesight headers."""
+    sandbox: bool = False,
+) -> tuple[str, str, dict[str, str], bool]:
+    """Resolve API credentials, gateway base URL, standard Omnesight headers, and sandbox flag."""
+    env_sandbox = os.environ.get("OMNESIGHT_SANDBOX", "").lower() in ("1", "true", "yes")
+    is_sandbox = (
+        sandbox
+        or env_sandbox
+        or (api_key is not None and (api_key.startswith("omne_sandbox_") or api_key.startswith("omne_test_")))
+    )
+
     resolved_key = api_key or os.environ.get("OMNESIGHT_API_KEY")
     if not resolved_key:
-        raise AuthenticationError(
-            "API key must be provided or set via OMNESIGHT_API_KEY environment variable."
-        )
+        if is_sandbox:
+            resolved_key = DEFAULT_SANDBOX_TOKEN
+        else:
+            raise AuthenticationError(
+                "API key must be provided or set via OMNESIGHT_API_KEY environment variable. "
+                "To evaluate without credentials, initialize with sandbox=True."
+            )
+
     env_url = os.environ.get("OMNESIGHT_BASE_URL")
-    resolved_url = (base_url or env_url or DEFAULT_BASE_URL).rstrip("/")
+    default_url = SANDBOX_BASE_URL if is_sandbox else DEFAULT_BASE_URL
+    resolved_url = (base_url or env_url or default_url).rstrip("/")
     headers = {
         "Authorization": f"Bearer {resolved_key}",
         "X-API-Key": resolved_key,
         "Content-Type": "application/json",
         "User-Agent": SDK_USER_AGENT,
     }
-    return resolved_key, resolved_url, headers
+    if is_sandbox:
+        headers["X-Omnesight-Sandbox"] = "true"
+
+    return resolved_key, resolved_url, headers, is_sandbox
 
 
 def _parse_response(response: httpx.Response) -> dict[str, Any]:
@@ -87,11 +109,15 @@ class Omnesight:
         timeout: float = 30.0,
         max_retries: int = 3,
         transport: httpx.BaseTransport | None = None,
+        sandbox: bool = False,
     ):
-        resolved = _resolve_client_settings(api_key, base_url)
-        self.api_key, self.base_url, headers = resolved
+        resolved = _resolve_client_settings(api_key, base_url, sandbox=sandbox)
+        self.api_key, self.base_url, headers, self.is_sandbox = resolved
         self.timeout = timeout
         self.max_retries = max_retries
+
+        if self.is_sandbox and transport is None and self.base_url == SANDBOX_BASE_URL:
+            transport = create_sandbox_transport()
 
         client_kwargs: dict[str, Any] = {
             "base_url": self.base_url,
@@ -139,11 +165,15 @@ class AsyncOmnesight:
         timeout: float = 30.0,
         max_retries: int = 3,
         transport: httpx.AsyncBaseTransport | None = None,
+        sandbox: bool = False,
     ):
-        resolved = _resolve_client_settings(api_key, base_url)
-        self.api_key, self.base_url, headers = resolved
+        resolved = _resolve_client_settings(api_key, base_url, sandbox=sandbox)
+        self.api_key, self.base_url, headers, self.is_sandbox = resolved
         self.timeout = timeout
         self.max_retries = max_retries
+
+        if self.is_sandbox and transport is None and self.base_url == SANDBOX_BASE_URL:
+            transport = create_sandbox_transport()
 
         client_kwargs: dict[str, Any] = {
             "base_url": self.base_url,
