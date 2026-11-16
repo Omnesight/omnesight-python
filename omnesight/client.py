@@ -51,11 +51,20 @@ def _resolve_client_settings(
     sandbox: bool = False,
 ) -> tuple[str, str, dict[str, str], bool]:
     """Resolve API credentials, gateway base URL, standard Omnesight headers, and sandbox flag."""
-    env_sandbox = os.environ.get("OMNESIGHT_SANDBOX", "").lower() in ("1", "true", "yes")
+    env_sandbox = os.environ.get("OMNESIGHT_SANDBOX", "").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
     is_sandbox = (
         sandbox
         or env_sandbox
-        or (api_key is not None and (api_key.startswith("omne_sandbox_") or api_key.startswith("omne_test_")))
+        or (
+            api_key is not None
+            and (
+                api_key.startswith("omne_sandbox_") or api_key.startswith("omne_test_")
+            )
+        )
     )
 
     resolved_key = api_key or os.environ.get("OMNESIGHT_API_KEY")
